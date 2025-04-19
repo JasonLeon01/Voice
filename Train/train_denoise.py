@@ -1,3 +1,4 @@
+# source train_env/bin/activate
 import os
 import random
 import torch
@@ -74,6 +75,7 @@ def main(max_samples=None):
     loss_fn = torch.nn.L1Loss()
 
     num_epochs = 20
+    num_batches = len(train_loader)
     for epoch in range(num_epochs):
         model.train()
         total_loss = 0
@@ -82,22 +84,23 @@ def main(max_samples=None):
         for noisy_chunks, clean_chunks, mask_chunks in train_loader:
             batch_idx += 1
             for noisy, clean, mask in zip(noisy_chunks, clean_chunks, mask_chunks):
-                print("mask true ratio:", mask.float().mean().item())
+                # print("mask true ratio:", mask.float().mean().item())
                 noisy = noisy.to(device)
                 clean = clean.to(device)
                 mask = mask.to(device)
                 output = model(noisy, src_key_padding_mask=mask)
-                # print("train output:", output.max().item(), output.min().item())
+                print("train output:", output.max().item(), output.min().item())
                 loss = loss_fn(output, clean)
                 optimizer.zero_grad()
                 loss.backward()
                 optimizer.step()
                 total_loss += loss.item()
                 chunk_total += 1
-            # print(f"\rEpoch {epoch+1} Progress: {batch_idx/num_batches*100:.2f}%", end="")
-            # print()
+            print()
+            print(f"\rEpoch {epoch+1} Progress: {batch_idx/num_batches*100:.2f}%", end="")
+            print()
         avg_loss = total_loss / chunk_total if chunk_total > 0 else 0
-        # print()
+        print()
         print(f"Epoch {epoch+1}, Train Loss: {avg_loss:.6f}")
         print()
 

@@ -7,18 +7,24 @@ from denoise_model import DenoiseAttentionModel
 
 def denoise_one(noisy_path, model, device):
     noisy_waveform, sr = torchaudio.load(noisy_path)
-    print("noisy_waveform:", noisy_waveform.max().item(), noisy_waveform.min().item())
+    # 记录均值和标准差
+    mean = noisy_waveform.mean()
+    std = noisy_waveform.std()
+    # 归一化
+    noisy_waveform_norm = (noisy_waveform - mean) / (std + 1e-7)
     input_dim = noisy_waveform.shape[0]
-    noisy_waveform = noisy_waveform.unsqueeze(0).to(device)  # [1, channels, time]
+    noisy_waveform_norm = noisy_waveform_norm.unsqueeze(0).to(device)  # [1, channels, time]
     with torch.no_grad():
-        denoised = model(noisy_waveform)
+        denoised = model(noisy_waveform_norm)
     denoised = denoised.squeeze(0).cpu()
+    # 反归一化
+    denoised = denoised * (std + 1e-7) + mean
     print("denoised:", denoised.max().item(), denoised.min().item())
     return denoised, sr
 
 def main():
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    output_dir = './Output'
+    output_dir = '../Dataset/Output'
     # 获取前1000组文件夹
     all_folders = sorted(os.listdir(output_dir))
     val_folders = all_folders[:1000] if len(all_folders) >= 1000 else all_folders

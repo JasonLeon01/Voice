@@ -4,3 +4,4 @@
 *.pyc
 *.wav
 *.pth
+/Train/train_env

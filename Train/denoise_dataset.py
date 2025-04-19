@@ -24,6 +24,9 @@ class DenoiseDataset(Dataset):
         min_len = min(noisy_waveform.shape[1], clean_waveform.shape[1])
         noisy_waveform = noisy_waveform[:, :min_len]
         clean_waveform = clean_waveform[:, :min_len]
+        # 归一化
+        noisy_waveform = (noisy_waveform - noisy_waveform.mean()) / (noisy_waveform.std() + 1e-7)
+        clean_waveform = (clean_waveform - clean_waveform.mean()) / (clean_waveform.std() + 1e-7)
         # 如果clean是单通道，扩展为双通道
         if clean_waveform.shape[0] == 1 and noisy_waveform.shape[0] == 2:
             clean_waveform = clean_waveform.repeat(2, 1)
