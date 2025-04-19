@@ -1,3 +1,5 @@
 /.vscode
 /Demo/Resemblyzer/audio_data
 *.pyc
+*.wav
+*.pth
