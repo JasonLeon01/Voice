@@ -23,11 +23,11 @@ def process_one(args):
         start = 0
     else:
         start = random.randint(0, len(noise_audio) - clean_len)
-    noise_clip = noise_audio[start:start + clean_len] - 6
+    noise_clip = noise_audio[start:start + clean_len] - 12
     mixed = clean_audio.overlay(noise_clip)
-    result_path = os.path.join(group_output, "result.wav")
+    result_path = os.path.join(group_output, "noisy.wav")
     mixed.export(result_path, format="wav")
-    origin_path = os.path.join(group_output, "origin.wav")
+    origin_path = os.path.join(group_output, "clean.wav")
     shutil.copy2(clean_file, origin_path)
     return clean_file, group_output
 

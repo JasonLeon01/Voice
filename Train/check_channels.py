@@ -8,7 +8,7 @@ other_channel_files = []
 
 for folder in os.listdir(output_dir):
     group_path = os.path.join(output_dir, folder)
-    for wav_name in ["origin.wav", "result.wav"]:
+    for wav_name in ["clean.wav", "noisy.wav"]:
         wav_path = os.path.join(group_path, wav_name)
         if os.path.exists(wav_path):
             try:

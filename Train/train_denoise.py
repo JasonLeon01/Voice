@@ -58,7 +58,7 @@ def main(max_samples=None):
     val_loader = DataLoader(val_dataset, batch_size=4, shuffle=False, collate_fn=collate_fn, num_workers=4)
 
     sample_noisy, _ = dataset[0]
-    model = DenoiseAttentionModel(input_dim=sample_noisy.shape[0]).to(device)
+    model = DenoiseAttentionModel(input_dim=sample_noisy.shape[0], embed_dim=256, num_layers=4).to(device)
     if torch.cuda.is_available():
         original_device = torch.cuda.current_device()
         for i in range(torch.cuda.device_count()):

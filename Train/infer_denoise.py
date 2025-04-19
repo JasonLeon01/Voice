@@ -33,13 +33,13 @@ def main():
     # 随机选一组
     folder = random.choice(val_folders)
     group_path = os.path.join(output_dir, folder)
-    result_path = os.path.join(group_path, "result.wav")
-    if not os.path.exists(result_path):
-        print(f"{result_path} not found.")
+    noisy_path = os.path.join(group_path, "noisy.wav")
+    if not os.path.exists(noisy_path):
+        print(f"{noisy_path} not found.")
         return
 
     # 获取通道数并加载模型
-    sample_waveform, _ = torchaudio.load(result_path)
+    sample_waveform, _ = torchaudio.load(noisy_path)
     input_dim = sample_waveform.shape[0]
     model = DenoiseAttentionModel(input_dim=input_dim).to(device)
 
@@ -58,18 +58,16 @@ def main():
         model.load_state_dict(state_dict)
     model.eval()
 
-    # 去噪并直接保存到根目录
-    denoised, sr = denoise_one(result_path, model, device)
+    denoised, sr = denoise_one(noisy_path, model, device)
     denoised_path = "./denoised.wav"
     torchaudio.save(denoised_path, denoised, sr)
 
-    # 复制result.wav到根目录
-    result_copy_path = "./result.wav"
-    shutil.copyfile(result_path, result_copy_path)
+    noisy_copy_path = "./noisy.wav"
+    shutil.copyfile(noisy_path, noisy_copy_path)
 
-    print(f"Processed: {result_path}")
+    print(f"Processed: {noisy_path}")
     print(f"Saved denoised audio to: {denoised_path}")
-    print(f"Copied original result.wav to: {result_copy_path}")
+    print(f"Copied original noisy.wav to: {noisy_copy_path}")
 
 if __name__ == "__main__":
     main()

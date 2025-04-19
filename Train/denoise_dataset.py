@@ -8,10 +8,10 @@ class DenoiseDataset(Dataset):
         self.pairs = []
         for group in os.listdir(root_dir):
             group_path = os.path.join(root_dir, group)
-            origin_path = os.path.join(group_path, "origin.wav")
-            result_path = os.path.join(group_path, "result.wav")
-            if os.path.exists(origin_path) and os.path.exists(result_path):
-                self.pairs.append((result_path, origin_path))
+            clean_path = os.path.join(group_path, "clean.wav")
+            noisy_path = os.path.join(group_path, "noisy.wav")
+            if os.path.exists(clean_path) and os.path.exists(noisy_path):
+                self.pairs.append((noisy_path, clean_path))
         self.length = len(self.pairs)
 
     def __len__(self):
