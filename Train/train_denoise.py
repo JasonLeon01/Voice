@@ -100,4 +100,4 @@ def main(max_samples=None):
         print(f"Epoch {epoch+1}, Val Loss: {avg_val_loss:.6f}")
 
 if __name__ == "__main__":
-    main(100)
+    main(10000)
