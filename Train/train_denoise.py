@@ -1,3 +1,4 @@
+import os
 import random
 import torch
 from torch.utils.data import DataLoader, Subset
@@ -35,6 +36,7 @@ def main(max_samples=None):
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     print(device)
     dataset = DenoiseDataset('../Dataset/Output')
+
     total_len = len(dataset)
     val_num = min(1000, total_len)
     train_num = total_len - val_num
@@ -50,8 +52,20 @@ def main(max_samples=None):
 
     sample_noisy, _ = dataset[0]
     model = DenoiseAttentionModel(input_dim=sample_noisy.shape[0]).to(device)
-    optimizer = torch.optim.Adam(model.parameters(), lr=1e-3)
-    loss_fn = torch.nn.MSELoss()
+    if torch.cuda.is_available():
+        original_device = torch.cuda.current_device()
+        for i in range(torch.cuda.device_count()):
+            torch.cuda.set_device(i)
+            torch.cuda.init()
+        torch.cuda.set_device(original_device)
+        print(f'Reset device to {original_device}')
+
+        if torch.cuda.device_count() > 1:
+            print(f'{torch.cuda.device_count()} GPUs DataParallel training.')
+            model = torch.nn.DataParallel(model).to(device)
+    optimizer = torch.optim.Adam(model.parameters(), lr=5e-4)#1e-3)
+    # loss_fn = torch.nn.MSELoss()
+    loss_fn = torch.nn.L1Loss()
 
     num_epochs = 20
     num_batches = len(train_loader)
@@ -67,15 +81,15 @@ def main(max_samples=None):
                 noisy = noisy.to(device)
                 clean = clean.to(device)
                 output = model(noisy)
+                print("train output:", output.max().item(), output.min().item())
                 loss = loss_fn(output, clean)
                 optimizer.zero_grad()
                 loss.backward()
                 optimizer.step()
                 total_loss += loss.item()
                 chunk_total += 1
-                print(f"\rEpoch {epoch+1} Batch {batch_idx}/{num_batches} Chunk {chunk_idx}/{num_chunks_in_batch}", end="")
-            print()
             print(f"\rEpoch {epoch+1} Progress: {batch_idx/num_batches*100:.2f}%", end="")
+            print()
         avg_loss = total_loss / chunk_total if chunk_total > 0 else 0
         print()
         print(f"Epoch {epoch+1}, Train Loss: {avg_loss:.6f}")
