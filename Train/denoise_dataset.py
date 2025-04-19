@@ -21,6 +21,8 @@ class DenoiseDataset(Dataset):
         noisy_path, clean_path = self.pairs[idx]
         noisy_waveform, _ = torchaudio.load(noisy_path)
         clean_waveform, _ = torchaudio.load(clean_path)
+        print("noisy:", noisy_waveform.mean().item(), noisy_waveform.min().item(), noisy_waveform.max().item())
+        print("clean:", clean_waveform.mean().item(), clean_waveform.min().item(), clean_waveform.max().item())
         min_len = min(noisy_waveform.shape[1], clean_waveform.shape[1])
         noisy_waveform = noisy_waveform[:, :min_len]
         clean_waveform = clean_waveform[:, :min_len]

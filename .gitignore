@@ -1,4 +1,5 @@
 /.vscode
+/Dataset
 /Demo/Resemblyzer/audio_data
 *.pyc
 *.wav

@@ -46,7 +46,6 @@ def main(max_samples=None):
 
     total_len = len(dataset)
     val_num = min(1000, total_len)
-    train_num = total_len - val_num
 
     # 前1000组为验证集，其余为训练集
     val_dataset = Subset(dataset, range(val_num))
@@ -83,7 +82,6 @@ def main(max_samples=None):
         batch_idx = 0
         for noisy_chunks, clean_chunks, mask_chunks in train_loader:
             batch_idx += 1
-            num_chunks_in_batch = len(noisy_chunks)
             for noisy, clean, mask in zip(noisy_chunks, clean_chunks, mask_chunks):
                 noisy = noisy.to(device)
                 clean = clean.to(device)
@@ -96,10 +94,10 @@ def main(max_samples=None):
                 optimizer.step()
                 total_loss += loss.item()
                 chunk_total += 1
-            print(f"\rEpoch {epoch+1} Progress: {batch_idx/num_batches*100:.2f}%", end="")
-            print()
+            # print(f"\rEpoch {epoch+1} Progress: {batch_idx/num_batches*100:.2f}%", end="")
+            # print()
         avg_loss = total_loss / chunk_total if chunk_total > 0 else 0
-        print()
+        # print()
         print(f"Epoch {epoch+1}, Train Loss: {avg_loss:.6f}")
         print()
 
