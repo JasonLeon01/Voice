@@ -22,7 +22,7 @@ def chunk_tensor(tensor, chunk_size):
         chunks.append(chunk)
     return chunks
 
-def collate_fn(batch, chunk_size=16000):
+def collate_fn(batch, chunk_size=8000):
     noisy_list, clean_list = zip(*batch)
     lengths = [x.shape[1] for x in noisy_list]
     noisy_padded = pad_sequence([x.t() for x in noisy_list], batch_first=True).transpose(1, 2)
@@ -88,6 +88,7 @@ def main(max_samples=None):
                 clean = clean.to(device)
                 mask = mask.to(device)
                 output = model(noisy, src_key_padding_mask=mask)
+                print("output shape:", output.shape, "clean shape:", clean.shape)
                 # print("train output:", output.max().item(), output.min().item())
                 loss = loss_fn(output, clean)
                 optimizer.zero_grad()
