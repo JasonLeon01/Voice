@@ -16,7 +16,7 @@ def denoise_one(noisy_path, model, device):
 
 def main():
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    output_dir = './Output'
+    output_dir = '../Dataset/Output'
     # 获取前1000组文件夹
     all_folders = sorted(os.listdir(output_dir))
     val_folders = all_folders[:1000] if len(all_folders) >= 1000 else all_folders

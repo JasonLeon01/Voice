@@ -1,7 +1,7 @@
 import os
 import torchaudio
 
-output_dir = './Output'
+output_dir = '../Dataset/Output'
 single_channel_files = []
 double_channel_files = []
 other_channel_files = []

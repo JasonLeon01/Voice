@@ -34,7 +34,7 @@ def collate_fn(batch, chunk_size=16000):
 def main(max_samples=None):
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     print(device)
-    dataset = DenoiseDataset('./Output')
+    dataset = DenoiseDataset('../Dataset/Output')
     total_len = len(dataset)
     val_num = min(1000, total_len)
     train_num = total_len - val_num
@@ -45,8 +45,8 @@ def main(max_samples=None):
     if max_samples is not None and max_samples < len(train_indices):
         train_indices = random.sample(train_indices, max_samples)
     train_dataset = Subset(dataset, train_indices)
-    train_loader = DataLoader(train_dataset, batch_size=4, shuffle=True, collate_fn=collate_fn)
-    val_loader = DataLoader(val_dataset, batch_size=4, shuffle=False, collate_fn=collate_fn)
+    train_loader = DataLoader(train_dataset, batch_size=4, shuffle=True, collate_fn=collate_fn, num_workers=4)
+    val_loader = DataLoader(val_dataset, batch_size=4, shuffle=False, collate_fn=collate_fn, num_workers=4)
 
     sample_noisy, _ = dataset[0]
     model = DenoiseAttentionModel(input_dim=sample_noisy.shape[0]).to(device)
@@ -54,12 +54,16 @@ def main(max_samples=None):
     loss_fn = torch.nn.MSELoss()
 
     num_epochs = 20
+    num_batches = len(train_loader)
     for epoch in range(num_epochs):
         model.train()
         total_loss = 0
         chunk_total = 0
+        batch_idx = 0
         for noisy_chunks, clean_chunks in train_loader:
-            for noisy, clean in zip(noisy_chunks, clean_chunks):
+            batch_idx += 1
+            num_chunks_in_batch = len(noisy_chunks)
+            for chunk_idx, (noisy, clean) in enumerate(zip(noisy_chunks, clean_chunks), 1):
                 noisy = noisy.to(device)
                 clean = clean.to(device)
                 output = model(noisy)
@@ -69,8 +73,15 @@ def main(max_samples=None):
                 optimizer.step()
                 total_loss += loss.item()
                 chunk_total += 1
+                print(f"\rEpoch {epoch+1} Batch {batch_idx}/{num_batches} Chunk {chunk_idx}/{num_chunks_in_batch}", end="")
+            print()
+            print(f"\rEpoch {epoch+1} Progress: {batch_idx/num_batches*100:.2f}%", end="")
         avg_loss = total_loss / chunk_total if chunk_total > 0 else 0
+        print()
         print(f"Epoch {epoch+1}, Train Loss: {avg_loss:.6f}")
+        print()
+
+        torch.save(model.state_dict(), f'./denoise_model_epoch{epoch+1}.pth')
 
         # 验证
         model.eval()
@@ -88,7 +99,5 @@ def main(max_samples=None):
         avg_val_loss = val_loss / val_chunks if val_chunks > 0 else 0
         print(f"Epoch {epoch+1}, Val Loss: {avg_val_loss:.6f}")
 
-        torch.save(model.state_dict(), f'./denoise_model_epoch{epoch+1}.pth')
-
 if __name__ == "__main__":
-    main(10000)
+    main(100)
