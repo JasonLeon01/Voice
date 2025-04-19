@@ -83,11 +83,12 @@ def main(max_samples=None):
         for noisy_chunks, clean_chunks, mask_chunks in train_loader:
             batch_idx += 1
             for noisy, clean, mask in zip(noisy_chunks, clean_chunks, mask_chunks):
+                print("mask true ratio:", mask.float().mean().item())
                 noisy = noisy.to(device)
                 clean = clean.to(device)
                 mask = mask.to(device)
                 output = model(noisy, src_key_padding_mask=mask)
-                print("train output:", output.max().item(), output.min().item())
+                # print("train output:", output.max().item(), output.min().item())
                 loss = loss_fn(output, clean)
                 optimizer.zero_grad()
                 loss.backward()
