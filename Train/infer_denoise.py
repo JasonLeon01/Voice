@@ -7,16 +7,18 @@ from denoise_model import DenoiseAttentionModel
 
 def denoise_one(noisy_path, model, device):
     noisy_waveform, sr = torchaudio.load(noisy_path)
+    print("noisy_waveform:", noisy_waveform.max().item(), noisy_waveform.min().item())
     input_dim = noisy_waveform.shape[0]
     noisy_waveform = noisy_waveform.unsqueeze(0).to(device)  # [1, channels, time]
     with torch.no_grad():
         denoised = model(noisy_waveform)
     denoised = denoised.squeeze(0).cpu()
+    print("denoised:", denoised.max().item(), denoised.min().item())
     return denoised, sr
 
 def main():
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    output_dir = '../Dataset/Output'
+    output_dir = './Output'
     # 获取前1000组文件夹
     all_folders = sorted(os.listdir(output_dir))
     val_folders = all_folders[:1000] if len(all_folders) >= 1000 else all_folders
@@ -34,7 +36,20 @@ def main():
     sample_waveform, _ = torchaudio.load(result_path)
     input_dim = sample_waveform.shape[0]
     model = DenoiseAttentionModel(input_dim=input_dim).to(device)
-    model.load_state_dict(torch.load('./denoise_model_epoch20.pth', map_location=device))
+
+    # 兼容DataParallel保存的权重
+    state_dict = torch.load('./denoise_model_epoch1.pth', map_location=device)
+    if any(k.startswith('module.') for k in state_dict.keys()):
+        from collections import OrderedDict
+        new_state_dict = OrderedDict()
+        for k, v in state_dict.items():
+            if k.startswith('module.'):
+                new_state_dict[k[7:]] = v
+            else:
+                new_state_dict[k] = v
+        model.load_state_dict(new_state_dict)
+    else:
+        model.load_state_dict(state_dict)
     model.eval()
 
     # 去噪并直接保存到根目录

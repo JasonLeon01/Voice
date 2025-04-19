@@ -11,13 +11,13 @@ class DenoiseAttentionModel(nn.Module):
         ])
         self.output_proj = nn.Linear(embed_dim, input_dim)
 
-    def forward(self, x):
+    def forward(self, x, src_key_padding_mask=None):
         # x: (batch, channel, time)
         x = x.permute(0, 2, 1)  # (batch, time, channel)
         x = self.input_proj(x)
         x = x.permute(1, 0, 2)  # (time, batch, embed_dim)
         for attn in self.attention_layers:
-            x = attn(x)
+            x = attn(x, src_key_padding_mask=src_key_padding_mask)
         x = x.permute(1, 0, 2)  # (batch, time, embed_dim)
         x = self.output_proj(x)
         x = x.permute(0, 2, 1)  # (batch, channel, time)
