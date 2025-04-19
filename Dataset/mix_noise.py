@@ -53,6 +53,7 @@ def main():
         for clean_file in clean_files:
             group_idx += 1
             tasks.append((clean_file, noise_segments, group_idx, output_dir))
+    tasks = tasks[:100000]
 
     total = len(tasks)
     print(f"All tasks: {total}")
